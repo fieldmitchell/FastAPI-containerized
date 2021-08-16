@@ -1,0 +1,21 @@
+variables:
+  VERSION: 1.0
+
+stages:
+  - package
+
+package-fastapi-middleware:
+  stage: package
+  tags:
+    - docker
+  image: python:3
+  only:
+    - packaging
+  before_script: # Skips Docker login.
+    - ":"
+  script:
+    - export PACKAGE_VERSION=${VERSION}
+    - pip install twine
+    - bash format.sh # Optional, see step 5 for details
+    - python setup.py sdist bdist_wheel
+    - TWINE_PASSWORD=${CI_JOB_TOKEN} python -m twine upload -u gitlab-ci-token --repository-url https://git.gwtc.net/api/v4/projects/${CI_PROJECT_ID}/packages/pypi --verbose --non-interactive --skip-existing dist/*
